@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import pl.zajonz.currencyprovider.configuration.properties.NbpApiProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties({NbpApiProperties.class})
+@EnableConfigurationProperties(NbpApiProperties.class)
 public class CurrencyProviderApplication {
 
     public static void main(String[] args) {
