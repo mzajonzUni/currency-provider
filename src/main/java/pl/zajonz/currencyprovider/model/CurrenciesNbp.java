@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class Currencies {
+public class CurrenciesNbp {
 
-    private LocalDate effectiveDate;
-    private Rates rates;
+    private LocalDate tradingDate;
+    private List<Rates> rates;
 
 }

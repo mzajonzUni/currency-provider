@@ -1,5 +1,6 @@
 package pl.zajonz.currencyprovider;
 
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -7,6 +8,7 @@ import pl.zajonz.currencyprovider.configuration.properties.NbpApiProperties;
 
 @SpringBootApplication
 @EnableConfigurationProperties(NbpApiProperties.class)
+@EnableRabbit
 public class CurrencyProviderApplication {
 
     public static void main(String[] args) {
