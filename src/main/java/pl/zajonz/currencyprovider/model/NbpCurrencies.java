@@ -8,9 +8,9 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class CurrenciesNbp {
+public class NbpCurrencies {
 
     private LocalDate tradingDate;
-    private List<Rates> rates;
+    private List<Rate> rates;
 
 }

@@ -1,7 +1,6 @@
 package pl.zajonz.currencyprovider.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.HeadersExchange;
@@ -12,13 +11,12 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pl.zajonz.currencyprovider.model.CurrenciesMessage;
+import pl.zajonz.currencyprovider.model.CurrencyMessage;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@RequiredArgsConstructor
 public class RabbitMqConfiguration {
 
     @Value("${currencies.queue}")
@@ -56,7 +54,7 @@ public class RabbitMqConfiguration {
     public DefaultClassMapper classMapper() {
         DefaultClassMapper classMapper = new DefaultClassMapper();
         Map<String, Class<?>> idClassMapping = new HashMap<>();
-        idClassMapping.put("CurrenciesMessage", CurrenciesMessage.class);
+        idClassMapping.put("CurrenciesMessage", CurrencyMessage.class);
         classMapper.setIdClassMapping(idClassMapping);
         return classMapper;
     }

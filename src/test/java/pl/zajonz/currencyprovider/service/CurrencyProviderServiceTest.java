@@ -7,20 +7,15 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.MessageConverter;
-import pl.zajonz.currencyprovider.client.NbpApiClient;
-import pl.zajonz.currencyprovider.model.CurrenciesMessage;
-import pl.zajonz.currencyprovider.model.CurrenciesNbp;
-import pl.zajonz.currencyprovider.model.Rates;
+import pl.zajonz.currencyprovider.mapper.CurrencyMessageMapper;
+import pl.zajonz.currencyprovider.model.CurrencyMessage;
+import pl.zajonz.currencyprovider.model.NbpCurrencies;
+import pl.zajonz.currencyprovider.model.Rate;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -30,39 +25,39 @@ class CurrencyProviderServiceTest {
     @InjectMocks
     private CurrencyProviderService currencyProviderService;
     @Mock
-    private RabbitTemplate rabbitTemplate;
+    private CurrencyMessageMapper mapper;
     @Mock
-    private MessageConverter messageConverter;
-    @Mock
-    private NbpApiClient nbpApiClient;
+    private CurrencySenderService currencySenderService;
     @Captor
-    private ArgumentCaptor<Message> argumentCaptor;
+    private ArgumentCaptor<CurrencyMessage> currencyMessageArgumentCaptor;
+    @Captor
+    private ArgumentCaptor<Rate> rateArgumentCaptor;
+
 
     @Test
-    void testGetAllCurrencies() {
+    void testProcessCurrencies() {
         //given
-        CurrenciesNbp currenciesNbp = new CurrenciesNbp(LocalDate.now(),
-                List.of(new Rates("Poland","PLN",4.4,4.5),
-                        new Rates("Poland","PLN",4.4,4.5)));
-        CurrenciesMessage currenciesMessage = new CurrenciesMessage("PLN",LocalDate.now(),4.4,4.5);
+        Rate rate = new Rate("euro", "EUR", 4.5, 4.6);
+        NbpCurrencies nbpCurrencies = new NbpCurrencies(LocalDate.now(),
+                List.of(rate));
+        CurrencyMessage currencyMessage = new CurrencyMessage("EUR", LocalDate.now(), 4.5, 4.6);
 
-        MessageProperties messageProperties = new MessageProperties();
-        messageProperties.setHeader("type", "currencies");
-        Message message = new Message(currenciesMessage.toString().getBytes(), messageProperties);
-
-
-        when(nbpApiClient.getAllCurrencies()).thenReturn(List.of(currenciesNbp));
-        when(messageConverter.toMessage(any(CurrenciesMessage.class),any(MessageProperties.class))).thenReturn(message);
-
+        when(mapper.toCurrencyMessage(any(Rate.class), any(LocalDate.class))).thenReturn(currencyMessage);
         //when
-        currencyProviderService.getAllCurrencies();
+        currencyProviderService.processCurrencies(nbpCurrencies);
 
         //then
-        verify(nbpApiClient, times(1)).getAllCurrencies();
-        verify(rabbitTemplate, times(2))
-                .convertAndSend(anyString(), anyString(), argumentCaptor.capture());
-        Message capturedMessage = argumentCaptor.getValue();
-        assertNotNull(capturedMessage);
-        assertEquals("currencies", capturedMessage.getMessageProperties().getHeaders().get("type"));
+        verify(mapper,times(nbpCurrencies.getRates().size())).toCurrencyMessage(
+                rateArgumentCaptor.capture(),any(LocalDate.class));
+        verify(currencySenderService, times(nbpCurrencies.getRates().size())).sendMessage(
+                currencyMessageArgumentCaptor.capture());
+
+        assertEquals(rate.getCurrency(),rateArgumentCaptor.getValue().getCurrency());
+        assertEquals(rate.getBid(),rateArgumentCaptor.getValue().getBid());
+        assertEquals(rate.getAsk(),rateArgumentCaptor.getValue().getAsk());
+
+        assertEquals(currencyMessage.getCurrency(),currencyMessageArgumentCaptor.getValue().getCurrency());
+        assertEquals(currencyMessage.getAsk(),currencyMessageArgumentCaptor.getValue().getAsk());
+        assertEquals(currencyMessage.getBid(),currencyMessageArgumentCaptor.getValue().getBid());
     }
 }
