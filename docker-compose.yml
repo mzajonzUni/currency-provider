@@ -23,8 +23,24 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_ROOT_USERNAME=root
 
+  currency-provider:
+    build:
+      context: ./currency-provider
+      dockerfile: ./Dockerfile
+    ports:
+      - 8081:8080
+    networks:
+      - currency-sys-network
+    depends_on:
+      - rabbitmq
+      - mysql
+
+
 volumes:
   rabbitmq_data:
     name: rabbitmq-data
   mysql_data:
     name: my-sql-data
+
+networks:
+  currency-sys-network:
